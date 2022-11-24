@@ -10,5 +10,7 @@ Decompressing string <br>
 input: abcd4[ef] <br>
 expected: abcdefefefef <br>
 <br>
-input: a3[ab2[cd]] <br>
-expected: aabcdcdabcdcdabcdcd
+input: a3[ab2[cd]]\n
+expected: aabcdcdabcdcdabcdcd <br>
+<br>
+#Solution
