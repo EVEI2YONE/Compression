@@ -1,4 +1,5 @@
-﻿using System.Reflection.PortableExecutable;
+﻿using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -39,37 +40,40 @@ namespace CompressionLibrary
             DecompressRecursive();
         }
 
+        public string Delimiter { get; set; } = "~";
         public string Compress(string input)
         {
             stringBuilder = new StringBuilder(input);
-            CompressRecursive(input, input.Length/2);
+            CompressRecursive(input.Cast<object>().ToList());
             return stringBuilder.ToString();
         }
-        private int CompressRecursive(string input, int size) //greedy algorithm - assume longest repeating sequence is 2[length/2]
+        private int CompressRecursive(List<object> input, int size = 2)
         {
-            if (size < 4) return 0; //aaa -> 3[a] results in more characters
-            List<string> repeatingSequences = new List<string>();
-            for(int i = 0; i <= input.Length-size; i++)
-            {
+            if (size > input.Count / 2) return 0;
 
-            }
-            if (repeatingSequences.Count > 0)
+            List<object> clone = new List<object>(input); //a2[cd]a2[cd]
+            Dictionary<string, Dictionary<int, RepeatItem>> repeatOccurrenes = new Dictionary<string, Dictionary<int, RepeatItem>>();
+            object[] slider;
+            for (int i = size; i <= clone.Count - size; i++) //slide across list starting at index 2: 'a', index 3: '2[cd]'
             {
-                int longestIndex = 0;
-                for(int i = 0; i < repeatingSequences.Count; i++)
+                slider = clone.GetSlider(size, i - size); //a2[cd]
+                for (int j = i; clone.IsRepeat(slider, j) && j <= clone.Count - size; j += 2) //compare next size chuck: 'a2[cd]'
                 {
-
+                    repeatOccurrenes.IncrementSequence(slider, i - size); //(a2[cd], occurrences)
                 }
-                return 0;
             }
-            else
-                return CompressRecursive(input, size - 1);
+            repeatOccurrenes.FilterOverlappingRecurrences();
+            repeatOccurrenes.CompressNonrecurrences(clone);
+            return 0;
         }
+            /* 
+            int len = (input is RepeatItem) ? input.Length : 1;
+            string extracted_value = "2";
+            int repeats = int.Parse(extracted_value);//some extracted value
+            int magnitude = extracted_value.Length/10 + 1; //based on extracted value for repeats
+            if ((len + Delimiter.Length) - (len * repeats) + magnitude > 0) continue;
+            */
     }
 
-    public static class StringExtensions
-    {
-        public static string Repeat(this string s, int n) //takes advantage of prealloc
-            => new StringBuilder(s.Length * n).Insert(0, s, n).ToString();
-    }
+    
 }
