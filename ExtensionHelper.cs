@@ -53,13 +53,6 @@ namespace CompressionLibrary
 
     public static class DictionaryExtensions
     {
-        public static bool FindMode(this Dictionary<string, RepeatItem> dictionary)
-        {
-            if (dictionary == null || !dictionary.Any()) return false;
-            int max = dictionary.Max(x => x.Value.Repeats);
-            dictionary = dictionary.Where(x => x.Value.Repeats == max).ToDictionary(pair => pair.Key, pair => pair.Value);
-            return dictionary.Any();
-        }
         public static void IncrementSequence(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary, object[] arr, int index)
         {
             string pattern = arr.ExtractSliderPattern();
@@ -92,6 +85,24 @@ namespace CompressionLibrary
             if (item.Index < prevItem.PatternIndexEnd) return true;
             else return false;
         }
+        public static void ScrubBaseCase(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary)
+        {
+            var recurringItems = dictionary.SelectMany(x => x.Value, (innerDictionary, repeatItem) => new { innerDictionary.Key, repeatItem });
+            var filterItems = recurringItems.Where(x =>
+            {
+                var repeatItem = x.repeatItem.Value;
+                int len = repeatItem.Pattern.Length;
+                int magnitude = repeatItem.Repeats/10 + 1; //based on extracted value for repeats; e.g. "2" is magnitude 0, "99" is magnitude 2
+                if ((RepeatItem.Delimiter.Length + magnitude + len + 2) - (len * repeatItem.Repeats) + magnitude > 0) //include "[]" as 2 constant
+                    return true;
+                return false;
+            });
+            foreach(var item in filterItems)
+                dictionary[item.Key].Remove(item.repeatItem.Value.Index);
+            foreach (var key in dictionary.Keys)
+                if (!dictionary[key].Any())
+                    dictionary.Remove(key);
+        }
         public static void FilterRecurrences(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary)
         {
             var recurringItems = dictionary.SelectMany(x => x.Value, (innerDictionary, repeatItem) => new { innerDictionary.Key, repeatItem });
@@ -101,6 +112,7 @@ namespace CompressionLibrary
         }
         public static void CompressNonrecurrences(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary, List<object> list)
         {
+            if (!dictionary.Any()) return;
             var items = dictionary.SelectMany(x => x.Value, (innerDictionary, repeatItem) => new { innerDictionary.Key, repeatItem });
             bool inAnothersPattern = false;
             for (int i = list.Count()-1; i >= 0; i--)

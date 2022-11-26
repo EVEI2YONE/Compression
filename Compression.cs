@@ -62,19 +62,16 @@ namespace CompressionLibrary
                     repeatOccurrences.IncrementSequence(slider, i - size); //(a2[cd], occurrences)
                 }
             }
-            if(!repeatOccurrences.Any())
-                return CompressRecursive(clone, size+1);
-            repeatOccurrences.FilterRecurrences();
-            repeatOccurrences.CompressNonrecurrences(clone);
-            return CompressRecursive(clone, 1);
+            if (!repeatOccurrences.Any())
+                return CompressRecursive(clone, size + 1);
+            repeatOccurrences.FilterRecurrences(); //remove recurrent patterns
+            repeatOccurrences.ScrubBaseCase(); //remove invalid compression at base case
+            repeatOccurrences.CompressNonrecurrences(clone); //compress nonoverlapping, nonrecurrence patterns
+            if (repeatOccurrences.Any())
+                return CompressRecursive(clone, 1);
+            else //consider dynamic programming here
+                return CompressRecursive(clone, size + 1);
         }
-        /* 
-        int len = (input is RepeatItem) ? input.Length : 1;
-        string extracted_value = "2";
-        int repeats = int.Parse(extracted_value);//some extracted value
-        int magnitude = extracted_value.Length/10 + 1; //based on extracted value for repeats
-        if ((len + Delimiter.Length) - (len * repeats) + magnitude > 0) continue;
-        */
     }
 
     
