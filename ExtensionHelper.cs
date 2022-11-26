@@ -39,6 +39,16 @@ namespace CompressionLibrary
             }
             return isRepeat;
         }
+        public static string Evaluate(this List<object> list)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            list.ForEach(x =>
+            {
+                x = (x is RepeatItem) ? (RepeatItem)x : (char)x;
+                stringBuilder.Append(x.ToString());
+            });
+            return stringBuilder.ToString();
+        }
     }
 
     public static class DictionaryExtensions
@@ -65,7 +75,7 @@ namespace CompressionLibrary
             prevItemKey = (innerDictionary.Any()) ? innerDictionary.LastOrDefault().Key : -1; //add previous mapping
             if (!innerDictionary.TryGetValue(index, out item)) //create new record of pattern at specified index
             {
-                item = new RepeatItem(pattern, index, 1, prevItemKey);
+                item = new RepeatItem(pattern, index, 1, prevItemKey, arr.Length);
                 if (prevItemKey != -1) //add reverse mapping
                     innerDictionary[prevItemKey].NextItemKey = index;
                 innerDictionary.Add(index, item);
@@ -73,7 +83,6 @@ namespace CompressionLibrary
             item = item ?? innerDictionary[index];
             if (innerDictionary.HasRecurringItem(item))
                 item.IsRecurring = true;
-                //innerDictionary.Remove(item.Index);
             item.Repeats++;
         }
         public static bool HasRecurringItem(this Dictionary<int, RepeatItem> dictionary, RepeatItem item) //should be the most recent entry
@@ -83,7 +92,7 @@ namespace CompressionLibrary
             if (item.Index < prevItem.PatternIndexEnd) return true;
             else return false;
         }
-        public static void FilterOverlappingRecurrences(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary)
+        public static void FilterRecurrences(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary)
         {
             var recurringItems = dictionary.SelectMany(x => x.Value, (innerDictionary, repeatItem) => new { innerDictionary.Key, repeatItem });
             var filterItems = recurringItems.Where(x => x.repeatItem.Value.IsRecurring);
@@ -93,9 +102,20 @@ namespace CompressionLibrary
         public static void CompressNonrecurrences(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary, List<object> list)
         {
             var items = dictionary.SelectMany(x => x.Value, (innerDictionary, repeatItem) => new { innerDictionary.Key, repeatItem });
+            bool inAnothersPattern = false;
             for (int i = list.Count()-1; i >= 0; i--)
             {
-
+                var item = items.Where(x => x.repeatItem.Value.Index == i).Select(x => x.repeatItem.Value).FirstOrDefault();
+                var noOtherPatternsAhead = (item == null) ? true : !items.Where(x => 
+                {
+                    int index = x.repeatItem.Value.Index;
+                    return index > i && index < item?.PatternIndexEnd;
+                }).Any();
+                if (item != null && noOtherPatternsAhead && !inAnothersPattern)
+                {
+                    list.RemoveRange(item.Index, item.PatternIndexEnd-item.Index);
+                    list.Insert(item.Index, item);
+                }
             }
         }
     }
@@ -110,6 +130,6 @@ namespace CompressionLibrary
             return a.ToString().Equals(b.ToString());
         }
         public static string ExtractSliderPattern(this object[] arr)
-            => string.Join("", arr.Select(x => (x is RepeatItem) ? ((RepeatItem)x).Pattern : ((char)x).ToString()));
+            => string.Join("", arr.Select(x => (x is RepeatItem) ? ((RepeatItem)x).Expression : ((char)x).ToString()));
     }
 }

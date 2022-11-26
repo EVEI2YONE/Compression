@@ -44,35 +44,37 @@ namespace CompressionLibrary
         public string Compress(string input)
         {
             stringBuilder = new StringBuilder(input);
-            CompressRecursive(input.Cast<object>().ToList());
-            return stringBuilder.ToString();
+            List<object> result = CompressRecursive(input.Cast<object>().ToList());
+            return result.Evaluate();
         }
-        private int CompressRecursive(List<object> input, int size = 2)
+        private List<object> CompressRecursive(List<object> input, int size = 1)
         {
-            if (size > input.Count / 2) return 0;
+            if (size > input.Count / 2) return input;
 
             List<object> clone = new List<object>(input); //a2[cd]a2[cd]
-            Dictionary<string, Dictionary<int, RepeatItem>> repeatOccurrenes = new Dictionary<string, Dictionary<int, RepeatItem>>();
+            Dictionary<string, Dictionary<int, RepeatItem>> repeatOccurrences = new Dictionary<string, Dictionary<int, RepeatItem>>();
             object[] slider;
             for (int i = size; i <= clone.Count - size; i++) //slide across list starting at index 2: 'a', index 3: '2[cd]'
             {
                 slider = clone.GetSlider(size, i - size); //a2[cd]
-                for (int j = i; clone.IsRepeat(slider, j) && j <= clone.Count - size; j += 2) //compare next size chuck: 'a2[cd]'
+                for (int j = i; clone.IsRepeat(slider, j) && j <= clone.Count - size; j += size) //compare next size chuck: 'a2[cd]'
                 {
-                    repeatOccurrenes.IncrementSequence(slider, i - size); //(a2[cd], occurrences)
+                    repeatOccurrences.IncrementSequence(slider, i - size); //(a2[cd], occurrences)
                 }
             }
-            repeatOccurrenes.FilterOverlappingRecurrences();
-            repeatOccurrenes.CompressNonrecurrences(clone);
-            return 0;
+            if(!repeatOccurrences.Any())
+                return CompressRecursive(clone, size+1);
+            repeatOccurrences.FilterRecurrences();
+            repeatOccurrences.CompressNonrecurrences(clone);
+            return CompressRecursive(clone, 1);
         }
-            /* 
-            int len = (input is RepeatItem) ? input.Length : 1;
-            string extracted_value = "2";
-            int repeats = int.Parse(extracted_value);//some extracted value
-            int magnitude = extracted_value.Length/10 + 1; //based on extracted value for repeats
-            if ((len + Delimiter.Length) - (len * repeats) + magnitude > 0) continue;
-            */
+        /* 
+        int len = (input is RepeatItem) ? input.Length : 1;
+        string extracted_value = "2";
+        int repeats = int.Parse(extracted_value);//some extracted value
+        int magnitude = extracted_value.Length/10 + 1; //based on extracted value for repeats
+        if ((len + Delimiter.Length) - (len * repeats) + magnitude > 0) continue;
+        */
     }
 
     
