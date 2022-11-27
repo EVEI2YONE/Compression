@@ -52,9 +52,27 @@ namespace CompressionLibrary
             List<object>result = CompressRecursive(list);
             return result.Evaluate();
         }
+        public static Dictionary<string, List<object>> PreviousComputations = new Dictionary<string, List<object>>();
+        public static int hitCount = 0;
+        public static int altHitCount = 0;
+        public static int recursiveHitCount = 0;
+        public static bool Test;
         private List<object> CompressRecursive(List<object> input, int size = 1)
         {
-            if (size > input.Count / 2) return input;
+            string evaluation = input.Evaluate();
+            if (Test && PreviousComputations.ContainsKey(evaluation))
+            {
+                hitCount++;
+                return PreviousComputations[evaluation];
+            }
+            if (size > input.Count / 2)
+            {
+                if(Test) PreviousComputations.Add(evaluation, input);
+                altHitCount++;
+                return input;
+            }
+            else
+                recursiveHitCount++;
             string optimalPattern;
             List<object> clone = new List<object>(input); //a2[cd]a2[cd]
             Dictionary<string, Dictionary<int, RepeatItem>> repeatOccurrences = new Dictionary<string, Dictionary<int, RepeatItem>>();
