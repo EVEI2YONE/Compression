@@ -140,7 +140,7 @@ namespace CompressionLibrary
                 copy.Insert(item.Index, item);
                 string evaluation = copy.Evaluate();
                 string result = (new Compression()).Compress(copy);//evaluation);
-                if (result.Length < evaluation.Length) 
+                if (result.Length < evaluation.Length && result.Length < minExpression.Length)
                 {
                     minIndex = item.Index;
                     minPattern = item.Pattern;

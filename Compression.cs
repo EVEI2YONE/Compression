@@ -62,28 +62,20 @@ namespace CompressionLibrary
             for (int i = size; i <= clone.Count - size; i++) //slide across list starting at index 2: 'a', index 3: '2[cd]'
             {
                 slider = clone.GetSlider(size, i - size); //a2[cd]
+                if (slider.Length == 0) continue;
                 for (int j = i; clone.IsRepeat(slider, j) && j <= clone.Count - size; j += size) //compare next size chuck: 'a2[cd]'
                 {
                     repeatOccurrences.IncrementSequence(slider, i - size); //(a2[cd], occurrences)
                 }
             }
             if (!repeatOccurrences.Any())
-                return CompressRecursive(clone, size + 1);
-            repeatOccurrences.FilterRecurrences(); //remove recurrent patterns
+                return CompressRecursive(clone, size: size + 1);
+            //repeatOccurrences.FilterRecurrences(); //remove recurrent patterns
             repeatOccurrences.ScrubBaseCase(); //remove invalid compression at base case
             repeatOccurrences.ResolveCombinations(clone);
             //repeatOccurrences.CompressNonrecurrences(clone); //compress nonoverlapping, nonrecurrence patterns
             if (repeatOccurrences.Any())
-            {
-                var result1 = CompressRecursive(clone, 1);
-                var result2 = CompressRecursive(clone, size);
-                var evaluation1 = result1.Evaluate().Length;
-                var evaluation2 = result2.Evaluate().Length;
-                if (evaluation1 < evaluation2)
-                    return result1;
-                else
-                    return result2;
-            }
+                return CompressRecursive(clone, 1);
             else
                 return CompressRecursive(clone, size + 1);
         }
