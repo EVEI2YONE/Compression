@@ -43,14 +43,19 @@ namespace CompressionLibrary
         public string Delimiter { get; set; } = "~";
         public string Compress(string input)
         {
-            stringBuilder = new StringBuilder(input);
             List<object> result = CompressRecursive(input.Cast<object>().ToList());
+            return result.Evaluate();
+        }
+
+        public string Compress(List<object> list)
+        {
+            List<object>result = CompressRecursive(list);
             return result.Evaluate();
         }
         private List<object> CompressRecursive(List<object> input, int size = 1)
         {
             if (size > input.Count / 2) return input;
-
+            string optimalPattern;
             List<object> clone = new List<object>(input); //a2[cd]a2[cd]
             Dictionary<string, Dictionary<int, RepeatItem>> repeatOccurrences = new Dictionary<string, Dictionary<int, RepeatItem>>();
             object[] slider;
@@ -66,10 +71,20 @@ namespace CompressionLibrary
                 return CompressRecursive(clone, size + 1);
             repeatOccurrences.FilterRecurrences(); //remove recurrent patterns
             repeatOccurrences.ScrubBaseCase(); //remove invalid compression at base case
-            repeatOccurrences.CompressNonrecurrences(clone); //compress nonoverlapping, nonrecurrence patterns
+            repeatOccurrences.ResolveCombinations(clone);
+            //repeatOccurrences.CompressNonrecurrences(clone); //compress nonoverlapping, nonrecurrence patterns
             if (repeatOccurrences.Any())
-                return CompressRecursive(clone, 1);
-            else //consider dynamic programming here
+            {
+                var result1 = CompressRecursive(clone, 1);
+                var result2 = CompressRecursive(clone, size);
+                var evaluation1 = result1.Evaluate().Length;
+                var evaluation2 = result2.Evaluate().Length;
+                if (evaluation1 < evaluation2)
+                    return result1;
+                else
+                    return result2;
+            }
+            else
                 return CompressRecursive(clone, size + 1);
         }
     }

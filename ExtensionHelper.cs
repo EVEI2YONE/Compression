@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace CompressionLibrary
 {
@@ -82,7 +83,7 @@ namespace CompressionLibrary
         {
             if (item.PrevItemKey == -1) return false;
             RepeatItem prevItem = dictionary[item.PrevItemKey];
-            if (item.Index < prevItem.PatternIndexEnd) return true;
+            if (item.Index <= prevItem.PatternIndexEnd) return true;
             else return false;
         }
         public static void ScrubBaseCase(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary)
@@ -93,7 +94,7 @@ namespace CompressionLibrary
                 var repeatItem = x.repeatItem.Value;
                 int len = repeatItem.Pattern.Length;
                 int magnitude = repeatItem.Repeats/10 + 1; //based on extracted value for repeats; e.g. "2" is magnitude 0, "99" is magnitude 2
-                if ((RepeatItem.Delimiter.Length + magnitude + len + 2) - (len * repeatItem.Repeats) + magnitude > 0) //include "[]" as 2 constant
+                if ((RepeatItem.Delimiter.Length + magnitude + len + 2) - (len * repeatItem.Repeats) > 0) //include "[]" as 2 constant
                     return true;
                 return false;
             });
@@ -114,21 +115,42 @@ namespace CompressionLibrary
         {
             if (!dictionary.Any()) return;
             var items = dictionary.SelectMany(x => x.Value, (innerDictionary, repeatItem) => new { innerDictionary.Key, repeatItem });
-            bool inAnothersPattern = false;
-            for (int i = list.Count()-1; i >= 0; i--)
+            for (int i = items.Max(x => x.repeatItem.Value.Index); i >= items.Min(x => x.repeatItem.Value.Index); i--)
             {
                 var item = items.Where(x => x.repeatItem.Value.Index == i).Select(x => x.repeatItem.Value).FirstOrDefault();
-                var noOtherPatternsAhead = (item == null) ? true : !items.Where(x => 
-                {
-                    int index = x.repeatItem.Value.Index;
-                    return index > i && index < item?.PatternIndexEnd;
-                }).Any();
-                if (item != null && noOtherPatternsAhead && !inAnothersPattern)
+                if(item != null)
                 {
                     list.RemoveRange(item.Index, item.PatternIndexEnd-item.Index);
                     list.Insert(item.Index, item);
                 }
             }
+        }
+        public static void ResolveCombinations(this Dictionary<string, Dictionary<int, RepeatItem>> dictionary, List<object> list)
+        {
+            if(!dictionary.Any()) return;
+            var items = dictionary.SelectMany(x => x.Value, (innerDictionary, repeatItem) => new { innerDictionary.Key, repeatItem });
+            var firstItem = items.First().repeatItem.Value;
+            int minIndex = firstItem.Index;
+            string minPattern = firstItem.Pattern;
+            string minExpression = firstItem.Expression;
+            foreach(var item in items.Select(x => x.repeatItem.Value))
+            {
+                List<object> copy = new List<object>(list);
+                copy.RemoveRange(item.Index, item.PatternIndexEnd - item.Index);
+                copy.Insert(item.Index, item);
+                string evaluation = copy.Evaluate();
+                string result = (new Compression()).Compress(copy);//evaluation);
+                if (result.Length < evaluation.Length) 
+                {
+                    minIndex = item.Index;
+                    minPattern = item.Pattern;
+                    minExpression = evaluation;
+                }
+            }
+            var repeatItem = dictionary[minPattern][minIndex];
+            list.RemoveRange(repeatItem.Index, repeatItem.PatternIndexEnd - repeatItem.Index);
+            list.Insert(repeatItem.Index, repeatItem);
+            repeatItem.ResolutionPostCleanUp();
         }
     }
 

@@ -18,16 +18,17 @@ namespace CompressionLibrary
         public int Repeats { get; set; }
         public int PrevItemKey { get; set; }
         public int NextItemKey { get; set; }
-        public int PatternIndexEnd { get { return Index + PatternSize * Repeats; } }
+        public int PatternIndexEnd { get { return (IsCompressed) ? Index + 1 : Index + PatternSize * Repeats; } } //'a' | 13[a] aaaaaaaaaaaaabbbbbbbbbbbbb | 13[a]13[b]
         public int PatternSize { get; set; }
         public bool IsRecurring { get; set; }
+        public bool IsCompressed { get; set; }
 
         public RepeatItem(string pattern, int index, int repeats, int prevItemKey = -1, int length = 0)
         {
             Pattern = pattern;
             Index = index;
             Repeats = repeats;
-            RepeatItems.TryAdd(index, this);
+            //RepeatItems.TryAdd(index, this);
             PrevItemKey = prevItemKey;
             NextItemKey = -1;
             PatternSize = length;
@@ -35,5 +36,13 @@ namespace CompressionLibrary
 
         public override string ToString()
             => Expression;
+
+        public void ResolutionPostCleanUp()
+        {
+            PatternSize = 1;
+            NextItemKey = -1;
+            PrevItemKey= -1;
+            IsCompressed = true;
+        }
     }
 }
