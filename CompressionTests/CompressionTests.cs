@@ -18,13 +18,13 @@ namespace CompressionTests
             lock (this)
             {
                 bool Test = false, Pattern = false;
-                RunCombination(Test, Pattern, input, expected);
+                //RunCombination(Test, Pattern, input, expected);
                 Test = true;
                 RunCombination(Test, Pattern, input, expected);
                 Test = false; Pattern = true;
-                RunCombination(Test, Pattern, input, expected);
+                //RunCombination(Test, Pattern, input, expected);
                 Test = true;
-                RunCombination(Test, Pattern, input, expected);
+                //RunCombination(Test, Pattern, input, expected);
             }
         }
         private void RunCombination(bool Test, bool Pattern, string input, string expected)
