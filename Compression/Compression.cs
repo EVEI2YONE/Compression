@@ -14,10 +14,12 @@ namespace CompressionLibrary
             DecompressRecursive();
             return stringBuilder.ToString();
         }
-        private Regex repeats = new Regex("(\\d+\\[[\\w+]*\\])");
+        private Regex repeats;
         private void DecompressRecursive()
         {
+            repeats = repeats ?? new Regex($"{Delimiter}(\\d+\\[[\\w+]*\\])");
             string input = stringBuilder.ToString();
+            //input = (Delimiter.Length > 0) ? input.Split(Delimiter)[1] : input;
             var matches = repeats.Matches(input);
             if (matches.Count == 0)
                 return;
@@ -29,7 +31,7 @@ namespace CompressionLibrary
                 match = matches[i]; //db3[ab]cd
                 value = match.Value; //3[ab]
                 numDigits = value.IndexOf("["); //1
-                num = int.Parse(value.Substring(0, numDigits)); //"3"
+                num = int.Parse(value.Substring(Delimiter.Length, numDigits-Delimiter.Length)); //"3"
                 start = numDigits + 1; //1+1 = 2 -> 3['a'b]
                 end = value.IndexOf("]"); //4 -> 3[ab']'
                 string repeatBlock = value.Substring(start, end-start); //3["ab"]
@@ -52,23 +54,34 @@ namespace CompressionLibrary
             List<object>result = CompressRecursive(list);
             return result.Evaluate();
         }
+
+        public static RepeatPatternDictionary PatternDictionary = new RepeatPatternDictionary();
         public static Dictionary<string, List<object>> PreviousComputations = new Dictionary<string, List<object>>();
-        public static int hitCount = 0;
-        public static int altHitCount = 0;
+        public static int baseCaseCount = 0;
+        public static int dictionaryHitCount = 0;
+        public static int solutionHitCount = 0;
         public static int recursiveHitCount = 0;
         public static bool Test;
+        public static bool Pattern;
         private List<object> CompressRecursive(List<object> input, int size = 1)
         {
             string evaluation = input.Evaluate();
+            List<object> solution;
             if (Test && PreviousComputations.ContainsKey(evaluation))
             {
-                hitCount++;
+                dictionaryHitCount++;
                 return PreviousComputations[evaluation];
+            }
+            else if (Pattern && PatternDictionary.ContainsSolution(evaluation, out solution))
+            {
+                solutionHitCount++;
+                return solution;
             }
             if (size > input.Count / 2)
             {
                 if(Test) PreviousComputations.Add(evaluation, input);
-                altHitCount++;
+                if(Pattern) PatternDictionary.AddSolutionToStruct(evaluation, input);
+                baseCaseCount++;
                 return input;
             }
             else

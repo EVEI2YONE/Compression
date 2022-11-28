@@ -1,6 +1,7 @@
 ﻿using CompressionLibrary;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace CompressionTests
         public void SetUp()
         {
             compression = new Compression();
+            compression.Delimiter = "";
         }
 
         private void Validate_Decompression(string input, string expected)
