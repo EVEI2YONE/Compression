@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33110.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompressionLibrary", "CompressionLibrary.csproj", "{58070268-8E06-4358-89D4-2D7CA93C773F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompressionTests", "..\CompressionTests\CompressionTests.csproj", "{CC7CE5DA-4F9A-4717-B372-787911F6511A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompressionTests", "..\CompressionTests\CompressionTests.csproj", "{A1B11D22-01AE-424B-B607-1D2BF9A55060}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{58070268-8E06-4358-89D4-2D7CA93C773F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58070268-8E06-4358-89D4-2D7CA93C773F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58070268-8E06-4358-89D4-2D7CA93C773F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CC7CE5DA-4F9A-4717-B372-787911F6511A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC7CE5DA-4F9A-4717-B372-787911F6511A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC7CE5DA-4F9A-4717-B372-787911F6511A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC7CE5DA-4F9A-4717-B372-787911F6511A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B11D22-01AE-424B-B607-1D2BF9A55060}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B11D22-01AE-424B-B607-1D2BF9A55060}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B11D22-01AE-424B-B607-1D2BF9A55060}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B11D22-01AE-424B-B607-1D2BF9A55060}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
